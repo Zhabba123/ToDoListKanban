@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kanban</title>
+</head>
+<style>
+    .title-main {
+        color: #000;
+        font-family: Inter, sans-serif;
+        font-size: 32px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: normal;
+        margin-bottom: 24px;
+    }
+
+    .board {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 21px;
+        box-sizing: border-box;
+    }
+
+    .add-column-btn {
+        margin-left: 39px;
+        display: flex;
+        align-items: center;
+    }
+
+    .add-column-btn svg {
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .add-column-btn svg:hover {
+        transform: scale(1.2);
+    }
+
+    .column-board {
+        width: 314px;
+        min-height: 200px;
+        flex-shrink: 0;
+        border-radius: 16px;
+        background: #F7F7F7;
+        padding: 20px 20px 0 20px;
+        box-sizing: border-box;
+    }
+
+    .header-column {
+        display: flex;
+        align-items: center;
+        /*justify-content: space-between;*/
+        box-sizing: border-box;
+        margin-bottom: 16px;
+    }
+
+    .title-column {
+        color: #000;
+        font-family: Inter, sans-serif;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        box-sizing: border-box;
+    }
+
+    .header-column-title {
+        display: flex;
+        align-items: center;
+    }
+
+    .title-column-separator {
+        width: 1px;
+        height: 20px;
+        background: rgba(0, 0, 0, 0.50);
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+    .count-column {
+        color: #000;
+        font-family: Inter, sans-serif;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 97%;
+        box-sizing: border-box;
+        margin-right: 9px;
+    }
+
+    .color-column {
+        width: 268px;
+        height: 2px;
+        flex-shrink: 0;
+        border-radius: 3px;
+        box-sizing: border-box;
+    }
+
+    .tasks-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 22px 0;
+        gap: 12px;
+        box-sizing: border-box;
+    }
+
+    .task {
+        width: 269px;
+        min-height: 100px;
+        flex-shrink: 0;
+        border-radius: 16px;
+        background: #FFF;
+        padding: 34px 12px 12px 12px;
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    .task.active-edit {
+        padding: 34px 12px 0 12px;
+    }
+
+    .task-description {
+        color: #000;
+        font-family: Inter, sans-serif;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        margin-bottom: 24px;
+        box-sizing: border-box;
+    }
+
+    .tags {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .tag-type {
+        color: #FFF;
+        font-family: Inter,sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        border-radius: 16px;
+        box-sizing: border-box;
+    }
+
+    .tag-type svg,
+    .tag svg {
+        margin-right: 6px;
+        box-sizing: border-box;
+    }
+
+    .tag {
+        flex-shrink: 0;
+        border-radius: 16px;
+        border: 1px solid #CFCFCF;
+        background: #FFF;
+        color: #000;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 300;
+        line-height: normal;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .add-card {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .add-card svg {
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .add-card svg:hover {
+        transform: scale(1.2);
+    }
+
+    .task-card {
+        cursor: pointer;
+    }
+
+    @keyframes animate {
+        from {
+            opacity: 0;
+        }
+    }
+
+    .task-icons svg {
+        cursor: pointer;
+    }
+
+    .edit-footer {
+        margin-bottom: 16px;
+        margin-top: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .task-icons {
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: flex-end;
+        position: absolute;
+        top: 12px;
+        right: 18px;
+    }
+
+    .task-icons.active {
+        transition: 0.3s;
+        opacity: 1;
+    }
+
+    .edit-icons-card {
+        display: flex;
+        gap: 12px;
+    }
+
+    .edit-icon {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .edit-button {
+        display: flex;
+        align-items: center;
+    }
+
+    .edit-button-save {
+        width: 134px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 0px 0px 0px 16px;
+        background: #3574F2;
+        color: #FFF;
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -12px;
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+
+    .edit-button-cancel {
+        width: 135px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 0px 0px 16px 0px;
+        background: #CACACA;
+        color: #FFF;
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+
+    .edit-card {
+        display: none;
+        opacity: 0;
+    }
+
+    .edit-card.active {
+        display: block;
+        opacity: 1;
+        transition: 0.4s;
+    }
+
+    .edit-project {
+        color: #000;
+        font-family: Inter,sans-serif;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 300;
+        line-height: normal;
+    }
+
+    .edit-project:hover {
+        text-decoration: underline;
+    }
+
+    .modal-small {
+        position: absolute;
+        top: 22px;
+        left: -34px;
+    }
+
+    .edit-tag-modal {
+        width: 509px;
+        flex-shrink: 0;
+        border-radius: 16px;
+        background: #D9D9D9;
+        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+        z-index: 999;
+    }
+
+    .tags-input {
+        width: 100%;
+        height: 64px;
+        flex-shrink: 0;
+        border-radius: 16px;
+        background: #FFF;
+        color: rgba(0, 0, 0, 0.53);
+        font-family: Inter, sans-serif;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: normal;
+        padding: 18px 12px;
+        box-sizing: border-box;
+    }
+
+    .color-tag-select {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+</style>
+<body>
+
+<div class="container">
+    <div id="kanban"></div>
+</div>
+
+<script type='module'>
+
+    class KanbanBoard {
+
+        constructor(data) {
+            this.projects = data;
+
+            this.createTemplate(this.projects);
+        }
+
+        createDomElement({tag, classList, cssText, id, content, parentAppend, titleColumn, placeholder}) {
+            const element = document.createElement(tag);
+            try {
+                if (classList) {
+                    element.className = classList;
+                }
+                if (cssText) {
+                    element.style.cssText = cssText;
+                }
+                if (id) {
+                    element.setAttribute('id', id.toString());
+                }
+                if (content || content === 0) {
+                    element.innerHTML = content.toString();
+                }
+                if (parentAppend) {
+                    parentAppend.appendChild(element);
+                }
+                if (placeholder) {
+                    element.placeholder = placeholder;
+                }
+            } catch (err) {
+                console.log(err.message);
+            }
+
+            return element;
+        }
+
+        createCardTaskFunc(card, task, i) {
+
+            const icons = this.createDomElement({
+                tag: 'div',
+                classList: 'task-icons',
+                parentAppend: card,
+            })
+
+            const edit = this.createDomElement({
+                tag: 'div',
+                classList: 'task-edit',
+                parentAppend: icons,
+                content: `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.6271 0.128526C10.6678 0.0877854 10.716 0.0554618 10.7692 0.0334071C10.8223 0.0113525 10.8793 0 10.9369 0C10.9944 0 11.0514 0.0113525 11.1045 0.0334071C11.1577 0.0554618 11.206 0.0877854 11.2466 0.128526L13.8715 2.75341C13.9122 2.79405 13.9445 2.84233 13.9666 2.89548C13.9886 2.94863 14 3.0056 14 3.06315C14 3.12069 13.9886 3.17767 13.9666 3.23082C13.9445 3.28397 13.9122 3.33225 13.8715 3.37288L5.12186 12.1225C5.07987 12.1642 5.02986 12.1969 4.97486 12.2187L0.600054 13.9687C0.520552 14.0005 0.433458 14.0083 0.34957 13.9911C0.265682 13.9739 0.188688 13.9324 0.128135 13.8719C0.0675823 13.8113 0.0261323 13.7343 0.00892405 13.6504C-0.00828422 13.5665 -0.000493998 13.4794 0.0313289 13.3999L1.78125 9.02514C1.80306 8.97013 1.83581 8.92013 1.8775 8.87814L10.6271 0.128526ZM9.80553 2.18819L11.8118 4.19447L12.9431 3.06315L10.9369 1.05686L9.80553 2.18819ZM11.1932 4.81307L9.18693 2.80678L3.49968 8.49403V8.7504H3.93716C4.05318 8.7504 4.16446 8.79649 4.2465 8.87853C4.32855 8.96058 4.37464 9.07185 4.37464 9.18788V9.62536H4.81212C4.92815 9.62536 5.03942 9.67145 5.12147 9.7535C5.20351 9.83554 5.2496 9.94681 5.2496 10.0628V10.5003H5.50596L11.1932 4.81307ZM2.65271 9.341L2.55997 9.43374L1.22303 12.777L4.56626 11.44L4.659 11.3473C4.57555 11.3161 4.5036 11.2602 4.45279 11.187C4.40197 11.1138 4.37471 11.0269 4.37464 10.9378V10.5003H3.93716C3.82113 10.5003 3.70986 10.4542 3.62781 10.3722C3.54577 10.2901 3.49968 10.1789 3.49968 10.0628V9.62536H3.0622C2.97311 9.62529 2.88616 9.59803 2.81299 9.54721C2.73981 9.4964 2.6839 9.42445 2.65271 9.341Z" fill="black"/>
+                    </svg>
+                    `
+            })
+
+            const del = this.createDomElement({
+                tag: 'div',
+                classList: 'task-delete',
+                parentAppend: icons,
+                content: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.5 5.5C5.63261 5.5 5.75979 5.55268 5.85355 5.64645C5.94732 5.74021 6 5.86739 6 6V12C6 12.1326 5.94732 12.2598 5.85355 12.3536C5.75979 12.4473 5.63261 12.5 5.5 12.5C5.36739 12.5 5.24021 12.4473 5.14645 12.3536C5.05268 12.2598 5 12.1326 5 12V6C5 5.86739 5.05268 5.74021 5.14645 5.64645C5.24021 5.55268 5.36739 5.5 5.5 5.5ZM8 5.5C8.13261 5.5 8.25979 5.55268 8.35355 5.64645C8.44732 5.74021 8.5 5.86739 8.5 6V12C8.5 12.1326 8.44732 12.2598 8.35355 12.3536C8.25979 12.4473 8.13261 12.5 8 12.5C7.86739 12.5 7.74021 12.4473 7.64645 12.3536C7.55268 12.2598 7.5 12.1326 7.5 12V6C7.5 5.86739 7.55268 5.74021 7.64645 5.64645C7.74021 5.55268 7.86739 5.5 8 5.5ZM11 6C11 5.86739 10.9473 5.74021 10.8536 5.64645C10.7598 5.55268 10.6326 5.5 10.5 5.5C10.3674 5.5 10.2402 5.55268 10.1464 5.64645C10.0527 5.74021 10 5.86739 10 6V12C10 12.1326 10.0527 12.2598 10.1464 12.3536C10.2402 12.4473 10.3674 12.5 10.5 12.5C10.6326 12.5 10.7598 12.4473 10.8536 12.3536C10.9473 12.2598 11 12.1326 11 12V6Z" fill="black"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M14.5 3C14.5 3.26522 14.3946 3.51957 14.2071 3.70711C14.0196 3.89464 13.7652 4 13.5 4H13V13C13 13.5304 12.7893 14.0391 12.4142 14.4142C12.0391 14.7893 11.5304 15 11 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4H2.5C2.23478 4 1.98043 3.89464 1.79289 3.70711C1.60536 3.51957 1.5 3.26522 1.5 3V2C1.5 1.73478 1.60536 1.48043 1.79289 1.29289C1.98043 1.10536 2.23478 1 2.5 1H6C6 0.734784 6.10536 0.48043 6.29289 0.292893C6.48043 0.105357 6.73478 0 7 0L9 0C9.26522 0 9.51957 0.105357 9.70711 0.292893C9.89464 0.48043 10 0.734784 10 1H13.5C13.7652 1 14.0196 1.10536 14.2071 1.29289C14.3946 1.48043 14.5 1.73478 14.5 2V3ZM4.118 4L4 4.059V13C4 13.2652 4.10536 13.5196 4.29289 13.7071C4.48043 13.8946 4.73478 14 5 14H11C11.2652 14 11.5196 13.8946 11.7071 13.7071C11.8946 13.5196 12 13.2652 12 13V4.059L11.882 4H4.118ZM2.5 3V2H13.5V3H2.5Z" fill="black"/>
+                    </svg>`
+            })
+
+            if (task.description) {
+                const description = this.createDomElement({
+                    tag: 'div',
+                    classList: 'task-description',
+                    parentAppend: card,
+                    content: task.description
+                })
+            }
+
+            const tags = this.createDomElement({
+                tag: 'div',
+                classList: 'tags',
+                parentAppend: card
+            })
+
+            task.tags.length !== 0 && task.tags.forEach(tag => {
+                tag && this.createDomElement({
+                    tag: 'div',
+                    classList: 'tag-type',
+                    content: `<svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.00161 3.9375C6.00161 4.2856 5.86572 4.61944 5.62382 4.86558C5.38192 5.11172 5.05384 5.25 4.71174 5.25C4.36965 5.25 4.04157 5.11172 3.79967 4.86558C3.55777 4.61944 3.42188 4.2856 3.42188 3.9375C3.42188 3.5894 3.55777 3.25556 3.79967 3.00942C4.04157 2.76328 4.36965 2.625 4.71174 2.625C5.05384 2.625 5.38192 2.76328 5.62382 3.00942C5.86572 3.25556 6.00161 3.5894 6.00161 3.9375ZM5.1417 3.9375C5.1417 3.82147 5.0964 3.71019 5.01577 3.62814C4.93514 3.54609 4.82578 3.5 4.71174 3.5C4.59771 3.5 4.48835 3.54609 4.40772 3.62814C4.32709 3.71019 4.28179 3.82147 4.28179 3.9375C4.28179 4.05353 4.32709 4.16481 4.40772 4.24686C4.48835 4.32891 4.59771 4.375 4.71174 4.375C4.82578 4.375 4.93514 4.32891 5.01577 4.24686C5.0964 4.16481 5.1417 4.05353 5.1417 3.9375Z" fill="white"/>
+                            <path d="M2.56304 0.875H6.5066C6.73464 0.87505 6.95333 0.967269 7.11456 1.13137L13.1339 7.25637C13.2952 7.42046 13.3857 7.64298 13.3857 7.875C13.3857 8.10702 13.2952 8.32954 13.1339 8.49362L9.19038 12.5064C9.02913 12.6704 8.81044 12.7626 8.58243 12.7626C8.35441 12.7626 8.13573 12.6704 7.97447 12.5064L1.95508 6.38137C1.7938 6.21732 1.70317 5.99479 1.70312 5.76275V1.75C1.70312 1.51794 1.79372 1.29538 1.95499 1.13128C2.11625 0.967187 2.33497 0.875 2.56304 0.875ZM2.56304 5.76275L8.58243 11.8877L12.526 7.875L6.5066 1.75H2.56304V5.76275Z" fill="white"/>
+                            </svg>
+                            ` + tag['type_task'],
+                    cssText:  tag['type_color'] ? 'background-color:' +tag['type_color'] : 'background-color: #CFCFCF',
+                    parentAppend: tags
+                })
+            })
+
+            task['user_name'] && this.createDomElement({
+                tag: 'div',
+                classList: 'tag',
+                content: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <g clip-path="url(#clip0_469_1565)">
+                            <path d="M5.5 5.5C6.22935 5.5 6.92882 5.21027 7.44454 4.69454C7.96027 4.17882 8.25 3.47935 8.25 2.75C8.25 2.02065 7.96027 1.32118 7.44454 0.805456C6.92882 0.289731 6.22935 0 5.5 0C4.77065 0 4.07118 0.289731 3.55546 0.805456C3.03973 1.32118 2.75 2.02065 2.75 2.75C2.75 3.47935 3.03973 4.17882 3.55546 4.69454C4.07118 5.21027 4.77065 5.5 5.5 5.5ZM7.33333 2.75C7.33333 3.23623 7.14018 3.70255 6.79636 4.04636C6.45255 4.39018 5.98623 4.58333 5.5 4.58333C5.01377 4.58333 4.54745 4.39018 4.20364 4.04636C3.85982 3.70255 3.66667 3.23623 3.66667 2.75C3.66667 2.26377 3.85982 1.79745 4.20364 1.45364C4.54745 1.10982 5.01377 0.916667 5.5 0.916667C5.98623 0.916667 6.45255 1.10982 6.79636 1.45364C7.14018 1.79745 7.33333 2.26377 7.33333 2.75ZM11 10.0833C11 11 10.0833 11 10.0833 11H0.916667C0.916667 11 0 11 0 10.0833C0 9.16667 0.916667 6.41667 5.5 6.41667C10.0833 6.41667 11 9.16667 11 10.0833ZM10.0833 10.0797C10.0824 9.85417 9.94217 9.17583 9.32067 8.55433C8.723 7.95667 7.59825 7.33333 5.5 7.33333C3.40083 7.33333 2.277 7.95667 1.67933 8.55433C1.05783 9.17583 0.9185 9.85417 0.916667 10.0797H10.0833Z" fill="#C6C6C6"/>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_469_1565">
+                              <rect width="11" height="11" fill="white"/>
+                            </clipPath>
+                          </defs>
+                        </svg>
+                        ` + task['user_name'],
+                parentAppend: tags
+            })
+
+            task['start_date'] && this.createDomElement({
+                tag: 'div',
+                classList: 'tag',
+                content: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <path d="M7.5625 4.46875C7.5625 4.37758 7.59872 4.29015 7.66318 4.22568C7.72765 4.16122 7.81508 4.125 7.90625 4.125H8.59375C8.68492 4.125 8.77235 4.16122 8.83682 4.22568C8.90128 4.29015 8.9375 4.37758 8.9375 4.46875V5.15625C8.9375 5.24742 8.90128 5.33485 8.83682 5.39932C8.77235 5.46378 8.68492 5.5 8.59375 5.5H7.90625C7.81508 5.5 7.72765 5.46378 7.66318 5.39932C7.59872 5.33485 7.5625 5.24742 7.5625 5.15625V4.46875Z" fill="#C6C6C6"/>
+                          <path d="M2.40625 0C2.49742 0 2.58485 0.0316894 2.64932 0.0880968C2.71378 0.144504 2.75 0.221009 2.75 0.300781V0.601562H8.25V0.300781C8.25 0.221009 8.28622 0.144504 8.35068 0.0880968C8.41515 0.0316894 8.50258 0 8.59375 0C8.68492 0 8.77235 0.0316894 8.83682 0.0880968C8.90128 0.144504 8.9375 0.221009 8.9375 0.300781V0.601562H9.625C9.98967 0.601562 10.3394 0.72832 10.5973 0.95395C10.8551 1.17958 11 1.4856 11 1.80469V8.42188C11 8.74096 10.8551 9.04698 10.5973 9.27261C10.3394 9.49824 9.98967 9.625 9.625 9.625H1.375C1.01033 9.625 0.660591 9.49824 0.402728 9.27261C0.144866 9.04698 0 8.74096 0 8.42188V1.80469C0 1.4856 0.144866 1.17958 0.402728 0.95395C0.660591 0.72832 1.01033 0.601562 1.375 0.601562H2.0625V0.300781C2.0625 0.221009 2.09872 0.144504 2.16318 0.0880968C2.22765 0.0316894 2.31508 0 2.40625 0ZM0.6875 2.40625V8.42188C0.6875 8.58142 0.759933 8.73443 0.888864 8.84724C1.0178 8.96006 1.19266 9.02344 1.375 9.02344H9.625C9.80734 9.02344 9.9822 8.96006 10.1111 8.84724C10.2401 8.73443 10.3125 8.58142 10.3125 8.42188V2.40625H0.6875Z" fill="#C6C6C6"/>
+                        </svg>
+                        ` + task['start_date'],
+                parentAppend: tags
+            })
+
+            task['end_date'] && this.createDomElement({
+                tag: 'div',
+                classList: 'tag',
+                content: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <path d="M7.5625 4.46875C7.5625 4.37758 7.59872 4.29015 7.66318 4.22568C7.72765 4.16122 7.81508 4.125 7.90625 4.125H8.59375C8.68492 4.125 8.77235 4.16122 8.83682 4.22568C8.90128 4.29015 8.9375 4.37758 8.9375 4.46875V5.15625C8.9375 5.24742 8.90128 5.33485 8.83682 5.39932C8.77235 5.46378 8.68492 5.5 8.59375 5.5H7.90625C7.81508 5.5 7.72765 5.46378 7.66318 5.39932C7.59872 5.33485 7.5625 5.24742 7.5625 5.15625V4.46875Z" fill="#C6C6C6"/>
+                          <path d="M2.40625 0C2.49742 0 2.58485 0.0316894 2.64932 0.0880968C2.71378 0.144504 2.75 0.221009 2.75 0.300781V0.601562H8.25V0.300781C8.25 0.221009 8.28622 0.144504 8.35068 0.0880968C8.41515 0.0316894 8.50258 0 8.59375 0C8.68492 0 8.77235 0.0316894 8.83682 0.0880968C8.90128 0.144504 8.9375 0.221009 8.9375 0.300781V0.601562H9.625C9.98967 0.601562 10.3394 0.72832 10.5973 0.95395C10.8551 1.17958 11 1.4856 11 1.80469V8.42188C11 8.74096 10.8551 9.04698 10.5973 9.27261C10.3394 9.49824 9.98967 9.625 9.625 9.625H1.375C1.01033 9.625 0.660591 9.49824 0.402728 9.27261C0.144866 9.04698 0 8.74096 0 8.42188V1.80469C0 1.4856 0.144866 1.17958 0.402728 0.95395C0.660591 0.72832 1.01033 0.601562 1.375 0.601562H2.0625V0.300781C2.0625 0.221009 2.09872 0.144504 2.16318 0.0880968C2.22765 0.0316894 2.31508 0 2.40625 0ZM0.6875 2.40625V8.42188C0.6875 8.58142 0.759933 8.73443 0.888864 8.84724C1.0178 8.96006 1.19266 9.02344 1.375 9.02344H9.625C9.80734 9.02344 9.9822 8.96006 10.1111 8.84724C10.2401 8.73443 10.3125 8.58142 10.3125 8.42188V2.40625H0.6875Z" fill="#C6C6C6"/>
+                        </svg>
+                        ` + task['end_date'],
+                parentAppend: tags
+            })
+
+            const editCard = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-card',
+                parentAppend: card
+            })
+
+            const footerEdit = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-footer',
+                parentAppend: editCard
+            })
+
+            const iconsBlock = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-icons-card',
+                parentAppend: footerEdit
+            })
+
+            const tagsEdit = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-icon edit-tag',
+                parentAppend: iconsBlock,
+                content: `<svg width="19" height="19" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.25 6.1875C8.25 6.73451 8.0327 7.25911 7.64591 7.64591C7.25911 8.0327 6.73451 8.25 6.1875 8.25C5.64049 8.25 5.11589 8.0327 4.72909 7.64591C4.3423 7.25911 4.125 6.73451 4.125 6.1875C4.125 5.64049 4.3423 5.11589 4.72909 4.72909C5.11589 4.3423 5.64049 4.125 6.1875 4.125C6.73451 4.125 7.25911 4.3423 7.64591 4.72909C8.0327 5.11589 8.25 5.64049 8.25 6.1875ZM6.875 6.1875C6.875 6.00516 6.80257 5.8303 6.67364 5.70136C6.5447 5.57243 6.36984 5.5 6.1875 5.5C6.00516 5.5 5.8303 5.57243 5.70136 5.70136C5.57243 5.8303 5.5 6.00516 5.5 6.1875C5.5 6.36984 5.57243 6.5447 5.70136 6.67364C5.8303 6.80257 6.00516 6.875 6.1875 6.875C6.36984 6.875 6.5447 6.80257 6.67364 6.67364C6.80257 6.5447 6.875 6.36984 6.875 6.1875Z" fill="#C6C6C6"/>
+                        <path d="M2.75 1.375H9.05575C9.42039 1.37508 9.77007 1.51999 10.0279 1.77787L19.6529 11.4029C19.9106 11.6607 20.0555 12.0104 20.0555 12.375C20.0555 12.7396 19.9106 13.0893 19.6529 13.3471L13.3471 19.6529C13.0893 19.9106 12.7396 20.0555 12.375 20.0555C12.0104 20.0555 11.6607 19.9106 11.4029 19.6529L1.77787 10.0279C1.51999 9.77007 1.37508 9.42039 1.375 9.05575V2.75C1.375 2.38533 1.51987 2.03559 1.77773 1.77773C2.03559 1.51987 2.38533 1.375 2.75 1.375ZM2.75 9.05575L12.375 18.6808L18.6808 12.375L9.05575 2.75H2.75V9.05575Z" fill="#C6C6C6"/>
+                        </svg>
+                        `
+            })
+
+            const tagsModal = this.createDomElement({
+                tag: 'div',
+                classList: 'modal-small edit-tag-modal',
+                parentAppend: tagsEdit,
+            })
+
+            const tagsModalColorPicker = this.createDomElement({
+                tag: 'div',
+                classList: 'color-tag-select',
+                cssText: 'background: red',
+            })
+
+            const tagsModalInput = this.createDomElement({
+                tag: 'input',
+                classList: 'tags-input',
+                parentAppend: tagsModal,
+                content: `Введите тег...`
+            })
+
+            const tagsModalTagList = this.createDomElement({
+                tag: 'div',
+                classList: '',
+                parentAppend: '',
+            })
+
+            const TAGLIST = [
+                {
+                    'type-name': 'Доработка',
+                    'type-color': '#003c91',
+                },
+                {
+                    'type-name': 'Создание',
+                    'type-color': '#256e00',
+                },
+                {
+                    'type-name': 'Исправление',
+                    'type-color': '#790202',
+                },
+                {
+                    'type-name': 'Мелкий недочет',
+                    'type-color': '#9b8100',
+                },
+            ]
+
+            TAGLIST.length !== 0 && TAGLIST.forEach(tag => {
+                const tagBlock = this.createDomElement({
+                    tag: 'div',
+                    classList: '',
+                    parentAppend: '',
+                })
+                const tagColor = this.createDomElement({
+                    tag: 'div',
+                    classList: '',
+                    parentAppend: '',
+                })
+                const tagEdit = this.createDomElement({
+                    tag: 'div',
+                    classList: '',
+                    parentAppend: '',
+                })
+                const tagDelete = this.createDomElement({
+                    tag: 'div',
+                    classList: '',
+                    parentAppend: '',
+                })
+            })
+
+
+
+            const user = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-icon edit-user',
+                parentAppend: iconsBlock,
+                content: `<svg width="19" height="19" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_462_1990)">
+                            <path d="M9.5 9.5C10.7598 9.5 11.968 8.99955 12.8588 8.10876C13.7496 7.21796 14.25 6.00978 14.25 4.75C14.25 3.49022 13.7496 2.28204 12.8588 1.39124C11.968 0.500445 10.7598 0 9.5 0C8.24022 0 7.03204 0.500445 6.14124 1.39124C5.25045 2.28204 4.75 3.49022 4.75 4.75C4.75 6.00978 5.25045 7.21796 6.14124 8.10876C7.03204 8.99955 8.24022 9.5 9.5 9.5ZM12.6667 4.75C12.6667 5.58985 12.333 6.39531 11.7392 6.98917C11.1453 7.58304 10.3399 7.91667 9.5 7.91667C8.66015 7.91667 7.85469 7.58304 7.26083 6.98917C6.66696 6.39531 6.33333 5.58985 6.33333 4.75C6.33333 3.91015 6.66696 3.10469 7.26083 2.51083C7.85469 1.91696 8.66015 1.58333 9.5 1.58333C10.3399 1.58333 11.1453 1.91696 11.7392 2.51083C12.333 3.10469 12.6667 3.91015 12.6667 4.75ZM19 17.4167C19 19 17.4167 19 17.4167 19H1.58333C1.58333 19 0 19 0 17.4167C0 15.8333 1.58333 11.0833 9.5 11.0833C17.4167 11.0833 19 15.8333 19 17.4167ZM17.4167 17.4103C17.4151 17.0208 17.1728 15.8492 16.0993 14.7757C15.067 13.7433 13.1243 12.6667 9.5 12.6667C5.87417 12.6667 3.933 13.7433 2.90067 14.7757C1.82717 15.8492 1.5865 17.0208 1.58333 17.4103H17.4167Z" fill="#C6C6C6"/>
+                            </g>
+                            <defs>
+                            <clipPath id="clip0_462_1990">
+                            <rect width="19" height="19" fill="white"/>
+                            </clipPath>
+                            </defs>
+                            </svg>
+                            `
+            })
+
+            const date = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-icon edit-date',
+                parentAppend: iconsBlock,
+                content: `<svg width="19" height="19" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.125 8.9375C15.125 8.75516 15.1974 8.5803 15.3264 8.45136C15.4553 8.32243 15.6302 8.25 15.8125 8.25H17.1875C17.3698 8.25 17.5447 8.32243 17.6736 8.45136C17.8026 8.5803 17.875 8.75516 17.875 8.9375V10.3125C17.875 10.4948 17.8026 10.6697 17.6736 10.7986C17.5447 10.9276 17.3698 11 17.1875 11H15.8125C15.6302 11 15.4553 10.9276 15.3264 10.7986C15.1974 10.6697 15.125 10.4948 15.125 10.3125V8.9375Z" fill="#C6C6C6"/>
+                        <path d="M4.8125 0C4.99484 0 5.1697 0.0633787 5.29864 0.176194C5.42757 0.289008 5.5 0.442018 5.5 0.601562V1.20312H16.5V0.601562C16.5 0.442018 16.5724 0.289008 16.7014 0.176194C16.8303 0.0633787 17.0052 0 17.1875 0C17.3698 0 17.5447 0.0633787 17.6736 0.176194C17.8026 0.289008 17.875 0.442018 17.875 0.601562V1.20312H19.25C19.9793 1.20312 20.6788 1.45664 21.1945 1.9079C21.7103 2.35916 22 2.9712 22 3.60938V16.8438C22 17.4819 21.7103 18.094 21.1945 18.5452C20.6788 18.9965 19.9793 19.25 19.25 19.25H2.75C2.02065 19.25 1.32118 18.9965 0.805456 18.5452C0.289731 18.094 0 17.4819 0 16.8438V3.60938C0 2.9712 0.289731 2.35916 0.805456 1.9079C1.32118 1.45664 2.02065 1.20312 2.75 1.20312H4.125V0.601562C4.125 0.442018 4.19743 0.289008 4.32636 0.176194C4.4553 0.0633787 4.63016 0 4.8125 0ZM1.375 4.8125V16.8438C1.375 17.1628 1.51987 17.4689 1.77773 17.6945C2.03559 17.9201 2.38533 18.0469 2.75 18.0469H19.25C19.6147 18.0469 19.9644 17.9201 20.2223 17.6945C20.4801 17.4689 20.625 17.1628 20.625 16.8438V4.8125H1.375Z" fill="#C6C6C6"/>
+                        </svg>
+                        `
+            })
+
+            const project = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-project',
+                parentAppend: footerEdit,
+                content: task['project_name']
+            })
+
+            const bottomButton = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-button',
+                parentAppend: editCard
+            })
+
+
+            const save = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-button-save',
+                parentAppend: bottomButton,
+                content: 'Сохранить'
+            })
+
+
+            const cancel = this.createDomElement({
+                tag: 'div',
+                classList: 'edit-button-cancel',
+                parentAppend: bottomButton,
+                content: 'Отменить'
+            })
+
+            tagsEdit.onclick = () => {
+
+            }
+
+            edit.onclick = () => {
+                card.classList.add('active-edit');
+                editCard.classList.add('active');
+            }
+
+            cancel.onclick = () => {
+                card.classList.remove('active-edit');
+                editCard.classList.remove('active');
+            }
+        }
+        createColumnTasks(parent, data) {
+            const headerColumn = this.createDomElement({
+                tag: 'div',
+                classList: 'header-column',
+                parentAppend: parent
+            })
+
+            const headerColumnTitle = this.createDomElement({
+                tag: 'div',
+                classList: 'header-column-title',
+                parentAppend: headerColumn
+            })
+
+            const title = this.createDomElement({
+                tag: 'div',
+                classList: 'title-column',
+                parentAppend: headerColumnTitle,
+                content: data.title
+            })
+
+            const separator = this.createDomElement({
+                tag: 'div',
+                classList: 'title-column-separator',
+                parentAppend: headerColumnTitle,
+            })
+
+            const count = this.createDomElement({
+                tag: 'div',
+                classList: 'count-column',
+                parentAppend: headerColumnTitle,
+                content: data.count
+            })
+
+            const addCard = this.createDomElement({
+                tag: 'div',
+                classList: 'add-card',
+                parentAppend: headerColumn,
+                content: `<svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_519_2176)">
+                        <path d="M8 15C6.14348 15 4.36301 14.2625 3.05025 12.9497C1.7375 11.637 1 9.85652 1 8C1 6.14348 1.7375 4.36301 3.05025 3.05025C4.36301 1.7375 6.14348 1 8 1C9.85652 1 11.637 1.7375 12.9497 3.05025C14.2625 4.36301 15 6.14348 15 8C15 9.85652 14.2625 11.637 12.9497 12.9497C11.637 14.2625 9.85652 15 8 15ZM8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16Z" fill="black" fill-opacity="0.5"/>
+                        <path d="M8 4C8.13261 4 8.25979 4.05268 8.35355 4.14645C8.44732 4.24021 8.5 4.36739 8.5 4.5V7.5H11.5C11.6326 7.5 11.7598 7.55268 11.8536 7.64645C11.9473 7.74021 12 7.86739 12 8C12 8.13261 11.9473 8.25979 11.8536 8.35355C11.7598 8.44732 11.6326 8.5 11.5 8.5H8.5V11.5C8.5 11.6326 8.44732 11.7598 8.35355 11.8536C8.25979 11.9473 8.13261 12 8 12C7.86739 12 7.74021 11.9473 7.64645 11.8536C7.55268 11.7598 7.5 11.6326 7.5 11.5V8.5H4.5C4.36739 8.5 4.24021 8.44732 4.14645 8.35355C4.05268 8.25979 4 8.13261 4 8C4 7.86739 4.05268 7.74021 4.14645 7.64645C4.24021 7.55268 4.36739 7.5 4.5 7.5H7.5V4.5C7.5 4.36739 7.55268 4.24021 7.64645 4.14645C7.74021 4.05268 7.86739 4 8 4Z" fill="black" fill-opacity="0.5"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_519_2176">
+                        <rect width="16" height="16" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        `
+            })
+
+            const colorLine = this.createDomElement({
+                tag: 'div',
+                classList: 'color-column',
+                parentAppend: parent,
+                cssText: 'background-color:' + data.color
+            });
+
+            const tasksList = this.createDomElement({
+                tag: 'div',
+                classList: 'tasks-list',
+                parentAppend: parent
+            });
+
+            tasksList.ondragover = (event) => this.onDragOver(event);
+            tasksList.ondrop = (event) => this.onDrop(event);
+
+            data.tasks.length !== 0 && data.tasks.forEach((task, i) => {
+                const card = this.createDomElement({
+                    tag: 'div',
+                    classList: 'task',
+                    parentAppend: tasksList,
+                });
+
+                card.draggable = true;
+                card.id = task.id;
+                card.ondragstart = (event) => this.onDragStart(event);
+
+                task && this.createCardTaskFunc(card, task, i);
+
+                card.onmouseover = () => {
+                    card.firstChild.classList.add('active');
+                }
+
+                card.onmouseout = () => {
+                    card.firstChild.classList.remove('active');
+                }
+
+
+            })
+        }
+        createTemplate() {
+            const container = document.getElementById('kanban');
+            if (container) {
+                const title = this.createDomElement({
+                    tag: 'h1',
+                    classList: 'title-main',
+                    content: 'KANBAN BOARD',
+                    parentAppend: container
+                });
+            }
+
+            const board = this.createDomElement({
+                tag: 'div',
+                classList: 'board',
+                parentAppend: container
+            });
+
+            this.projects.length !== 0 && this.projects.forEach(project => {
+                project.content.length !==0 && project.content.forEach((item, i) => {
+                    const columnTasks = this.createDomElement({
+                        tag: 'div',
+                        classList: 'column-board',
+                        parentAppend: board,
+                    });
+
+
+                    item && this.createColumnTasks(columnTasks, item)
+
+                })
+
+            });
+
+            const addButton = this.createDomElement({
+                tag: 'div',
+                classList: 'add-column-btn',
+                content: `<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_492_1435)">
+                    <path d="M22 0C17.6488 0 13.3953 1.29028 9.77746 3.70767C6.15958 6.12506 3.33979 9.56099 1.67466 13.581C0.00953218 17.6009 -0.426141 22.0244 0.422734 26.292C1.27161 30.5596 3.36691 34.4796 6.44366 37.5563C9.52042 40.6331 13.4404 42.7284 17.708 43.5773C21.9756 44.4261 26.3991 43.9905 30.419 42.3253C34.439 40.6602 37.875 37.8404 40.2923 34.2225C42.7097 30.6047 44 26.3512 44 22C43.9936 16.1672 41.6737 10.5751 37.5493 6.45069C33.4249 2.32626 27.8328 0.00636919 22 0ZM22 41.9375C18.0567 41.9375 14.202 40.7682 10.9233 38.5774C7.64462 36.3867 5.08918 33.2729 3.58016 29.6297C2.07114 25.9866 1.67631 21.9779 2.4456 18.1104C3.2149 14.2429 5.11376 10.6904 7.90207 7.90206C10.6904 5.11375 14.2429 3.21489 18.1104 2.44559C21.9779 1.6763 25.9867 2.07113 29.6298 3.58015C33.2729 5.08917 36.3867 7.64461 38.5774 10.9233C40.7682 14.202 41.9375 18.0567 41.9375 22C41.9311 27.2858 39.8285 32.3533 36.0909 36.0909C32.3533 39.8285 27.2858 41.9311 22 41.9375Z" fill="#A3A3A3"/>
+                    <path d="M30.9375 20.9688H23.0312V13.0625C23.0312 12.789 22.9226 12.5267 22.7292 12.3333C22.5358 12.1399 22.2735 12.0312 22 12.0312C21.7265 12.0312 21.4642 12.1399 21.2708 12.3333C21.0774 12.5267 20.9688 12.789 20.9688 13.0625V20.9688H13.0625C12.789 20.9688 12.5267 21.0774 12.3333 21.2708C12.1399 21.4642 12.0312 21.7265 12.0312 22C12.0312 22.2735 12.1399 22.5358 12.3333 22.7292C12.5267 22.9226 12.789 23.0312 13.0625 23.0312H20.9688V30.9375C20.9688 31.211 21.0774 31.4733 21.2708 31.6667C21.4642 31.8601 21.7265 31.9688 22 31.9688C22.2735 31.9688 22.5358 31.8601 22.7292 31.6667C22.9226 31.4733 23.0312 31.211 23.0312 30.9375V23.0312H30.9375C31.211 23.0312 31.4733 22.9226 31.6667 22.7292C31.8601 22.5358 31.9688 22.2735 31.9688 22C31.9688 21.7265 31.8601 21.4642 31.6667 21.2708C31.4733 21.0774 31.211 20.9688 30.9375 20.9688Z" fill="#A3A3A3"/>
+                    </g>
+                    <defs>
+                    <clipPath id="clip0_492_1435">
+                    <rect width="44" height="44" fill="white"/>
+                    </clipPath>
+                    </defs>
+                    </svg>
+                    `,
+                parentAppend: board,
+                cssText: 'height:400px'
+            })
+        }
+
+        onDragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.id);
+        }
+
+        onDragOver(event) {
+            event.preventDefault();
+        }
+
+        onDrop(event) {
+            let id = event.dataTransfer.getData('text');
+            let draggableElement = document.getElementById(id);
+            let dropzone = event.currentTarget;
+            let nextElement;
+
+            // Проверяем, есть ли элементы после бросаемого элемента
+            if (dropzone.children.length > 0) {
+                // Находим ближайший следующий элемент
+                for (let i = 0; i < dropzone.children.length; i++) {
+                    let child = dropzone.children[i];
+                    let rect = child.getBoundingClientRect();
+                    if (event.clientY < rect.top) {
+                        nextElement = child;
+                        break;
+                    }
+                }
+            }
+
+            // Если есть следующий элемент, вставляем перед ним, иначе вставляем в конец
+            if (nextElement) {
+                dropzone.insertBefore(draggableElement, nextElement);
+            } else {
+                dropzone.appendChild(draggableElement);
+            }
+
+            event.dataTransfer.clearData();
+        }
+    }
+
+    const projects = [
+        {
+            'project_id': 0,
+            'content': [
+                {
+                    'title': 'Бэклог',
+                    'tasks': [
+                        {
+                            'id': 1,
+                            'title': 'Таска для виджеты',
+                            'description': 'Создание доски для тоски',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#3574F2'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Alex',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+
+                        },
+                        {
+                            'id': 2,
+                            'title': 'Таска для виджеты',
+                            'description': 'Создание доски для тоски',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#f5005b'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Nik',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+                        },
+                        {
+                            'id': 3,
+                            'title': 'Таска для виджеты',
+                            'description': 'Создание доски для тоски',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#ea0404'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Testo',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+                        },
+                    ],
+                    'count': 3,
+                    'color': '#3F9AED'
+                },
+                {
+                    'title': 'В работе',
+                    'tasks': [
+                        {
+                            'id': 4,
+                            'title': 'Таска для виджеты',
+                            'description': 'Описать модель данных для канбан доски (описать сущности, поля, ключи и связи)',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#3574F2'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Dog',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+                        },
+                        {
+                            'id': 5,
+                            'title': 'Таска для виджеты',
+                            'description': 'In work',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#127a00'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Alex',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+                        },
+                        {
+                            'id': 6,
+                            'title': 'Таска для виджеты',
+                            'description': 'In work',
+                            'tags': [
+                                {
+                                    'type_task': 'Доработка',
+                                    'type_color': '#3574F2'
+                                }
+                            ],
+                            'project_name': 'KAN-01',
+                            'project_full_name': 'Kanban board_01',
+                            'start_date': '21.01.2024',
+                            'end_date': '29.01.2024',
+                            'user_name': 'Alex',
+                            'user_id': '1',
+                            'user_mail': 'test@mail.ru',
+                        },
+                    ],
+                    'count': 3,
+                    'color': '#FFD337'
+                }
+                ,]
+        }
+
+    ]
+
+    const kanban = new KanbanBoard(projects);
+
+</script>
+</body>
+</html>

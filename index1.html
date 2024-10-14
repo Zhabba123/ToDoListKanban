@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kanban</title>
+  <style>
+    /* Стили для Kanban-доски */
+    .title-main {
+      color: #000;
+      font-family: Inter, sans-serif;
+      font-size: 32px;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .board {
+      display: flex;
+      gap: 21px;
+      box-sizing: border-box;
+    }
+
+    .column-board {
+      width: 314px;
+      min-height: 200px;
+      background: #F7F7F7;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .header-column {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .title-column {
+      font-family: Inter, sans-serif;
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .task {
+      background: #FFF;
+      padding: 12px;
+      border-radius: 16px;
+      position: relative;
+    }
+
+    .task-description {
+      font-family: Inter, sans-serif;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tag-type {
+      background: #CFCFCF;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 16px;
+    }
+
+    .edit-card, .task-icons {
+      display: none;
+    }
+
+    .active-edit .edit-card {
+      display: block;
+    }
+
+    .task-icons {
+      display: flex;
+      gap: 10px;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+
+    .task-icons.active {
+      display: flex;
+    }
+
+    .edit-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+    }
+
+    .edit-button-save, .edit-button-cancel {
+      width: 134px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+
+    .edit-button-save {
+      background: #3574F2;
+      color: white;
+    }
+
+    .edit-button-cancel {
+      background: #CACACA;
+      color: white;
+    }
+
+    .modal-small {
+      position: absolute;
+      top: 22px;
+      left: -34px;
+      background: #D9D9D9;
+      padding: 12px;
+      border-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1 class="title-main">Kanban Board</h1>
+  <div id="kanban" class="board"></div>
+</div>
+
+<script type="module">
+  class KanbanBoard {
+    constructor(data) {
+      this.projects = data;
+      this.createTemplate(this.projects);
+    }
+
+    createDomElement({tag, classList, id, content, parentAppend, placeholder}) {
+      const element = document.createElement(tag);
+      if (classList) element.className = classList;
+      if (id) element.setAttribute('id', id);
+      if (content) element.innerHTML = content;
+      if (placeholder) element.placeholder = placeholder;
+      if (parentAppend) parentAppend.appendChild(element);
+      return element;
+    }
+
+    createCardTaskFunc(card, task) {
+      const icons = this.createDomElement({
+        tag: 'div',
+        classList: 'task-icons',
+        parentAppend: card,
+      });
+
+      const edit = this.createDomElement({
+        tag: 'div',
+        classList: 'task-edit',
+        content: '✏️',
+        parentAppend: icons,
+      });
+
+      const del = this.createDomElement({
+        tag: 'div',
+        classList: 'task-delete',
+        content: '🗑️',
+        parentAppend: icons,
+      });
+
+      if (task.description) {
+        this.createDomElement({
+          tag: 'div',
+          classList: 'task-description',
+          content: task.description,
+          parentAppend: card,
+        });
+      }
+
+      const tags = this.createDomElement({
+        tag: 'div',
+        classList: 'tags',
+        parentAppend: card,
+      });
+
+      task.tags.forEach(tag => {
+        this.createDomElement({
+          tag: 'div',
+          classList: 'tag-type',
+          content: tag['type_task'],
+          parentAppend: tags,
+        });
+      });
+
+      const editCard = this.createDomElement({
+        tag: 'div',
+        classList: 'edit-card',
+        parentAppend: card,
+      });
+
+      const footerEdit = this.createDomElement({
+        tag: 'div',
+        classList: 'edit-footer',
+        parentAppend: editCard,
+      });
+
+      const saveButton = this.createDomElement({
+        tag: 'div',
+        classList: 'edit-button-save',
+        content: 'Сохранить',
+        parentAppend: footerEdit,
+      });
+
+      const cancelButton = this.createDomElement({
+        tag: 'div',
+        classList: 'edit-button-cancel',
+        content: 'Отменить',
+        parentAppend: footerEdit,
+      });
+
+      edit.onclick = () => {
+        card.classList.add('active-edit');
+      };
+
+      cancelButton.onclick = () => {
+        card.classList.remove('active-edit');
+      };
+    }
+
+    createColumnTasks(parent, data) {
+      const headerColumn = this.createDomElement({
+        tag: 'div',
+        classList: 'header-column',
+        parentAppend: parent,
+      });
+
+      const titleColumn = this.createDomElement({
+        tag: 'div',
+        classList: 'title-column',
+        content: data.column_title,
+        parentAppend: headerColumn,
+      });
+
+      const taskList = this.createDomElement({
+        tag: 'div',
+        classList: 'tasks-list',
+        parentAppend: parent,
+      });
+
+      data.tasks.forEach((task, i) => {
+        const card = this.createDomElement({
+          tag: 'div',
+          classList: 'task',
+          parentAppend: taskList,
+        });
+        this.createCardTaskFunc(card, task, i);
+      });
+    }
+
+    createTemplate(projects) {
+      const board = document.querySelector("#kanban");
+      projects.forEach(project => {
+        const column = this.createDomElement({
+          tag: 'div',
+          classList: 'column-board',
+          parentAppend: board,
+        });
+        this.createColumnTasks(column, project);
+      });
+    }
+  }
+
+  // Пример данных для Kanban доски
+  const data = [
+    {
+      column_title: "To-Do",
+      tasks: [
+        {
+          description: "Добавить новую задачу",
+          tags: [
+            {type_task: "Создание"}
+          ]
+        },
+        {
+          description: "Исправить баги",
+          tags: [
+            {type_task: "Исправление"}
+          ]
+        }
+      ]
+    },
+    {
+      column_title: "In Progress",
+      tasks: [
+        {
+          description: "Реализовать функцию drag-and-drop",
+          tags: [
+            {type_task: "Доработка"}
+          ]
+        }
+      ]
+    },
+    {
+      column_title: "Done",
+      tasks: [
+        {
+          description: "Сверстать макет страницы",
+          tags: [
+            {type_task: "Мелкий недочет"}
+          ]
+        }
+      ]
+    }
+  ];
+
+  new KanbanBoard(data);
+</script>
+</body>
+</html>

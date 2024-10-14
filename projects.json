@@ -1,0 +1,54 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "name": "Kanban Project",
+      "content": [
+        {
+          "status": "To Do",
+          "tasks": [
+            {
+              "id": 1728852266966,
+              "description": "мкумку",
+              "status": "To Do",
+              "assignee": "мкмкму"
+            },
+            {
+              "id": 1728852075993,
+              "description": "iuhuig",
+              "status": "To Do",
+              "assignee": "rvervre"
+            }
+          ]
+        },
+        {
+          "status": "In Progress",
+          "tasks": [
+            {
+              "id": 1728852688217,
+              "description": "рвгкрпгшук",
+              "status": "In Progress",
+              "assignee": "Не назначен"
+            },
+            {
+              "id": 1728852864080,
+              "description": "оиолигук",
+              "status": "In Progress",
+              "assignee": "мкумку"
+            },
+            {
+              "id": 1728852965370,
+              "description": "мкмукм",
+              "status": "In Progress",
+              "assignee": "мкумкум"
+            }
+          ]
+        },
+        {
+          "status": "Done",
+          "tasks": []
+        }
+      ]
+    }
+  ]
+}
